@@ -11,6 +11,7 @@
 // ============================================================================
 package com.braintribe.utils.xml;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -71,6 +72,7 @@ import com.braintribe.utils.IOTools;
 import com.braintribe.utils.MemorySaveStringWriter;
 import com.braintribe.utils.RandomTools;
 import com.braintribe.utils.StringTools;
+import com.braintribe.utils.io.UnsynchronizedBufferedWriter;
 import com.braintribe.utils.xml.xpath.MapBasedNamespaceContext;
 
 /**
@@ -257,8 +259,8 @@ public class XmlTools {
 				doc.setDocumentURI(uri.toString());
 
 			} catch (URISyntaxException e) {
-				/* Advise: uri construction from URL is a litte tricky because not any valid url is a valid uri. If
-				 * there are any problems with exceptions here please analyse why it is an invalid uri */
+				/* Advise: uri construction from URL is a litte tricky because not any valid url is a valid uri. If there are any problems with
+				 * exceptions here please analyse why it is an invalid uri */
 				throw new Error("Error while creating base uri for xml document based on url " + u, e);
 			}
 
@@ -378,27 +380,25 @@ public class XmlTools {
 
 		return document;
 	}
-	/* public static void xmlToTable(String xml, DefaultTableModel model, String tag, String[] attribs) throws
-	 * SAXException, ParserConfigurationException { Document doc= parseXML( xml );
-	 * 
-	 * NodeList elements = doc.getElementsByTagName(tag);
-	 * 
-	 * for (int i = 0; i < elements.getLength(); i++) { Element element = (Element)elements.item(i);
-	 * 
-	 * String[] v= new String[attribs.length]; for (int j = 0; j < attribs.length; j++) { v[j]= element.getAttribute(
-	 * attribs[j] ); }
-	 * 
-	 * model.addRow(v); } }
-	 * 
-	 * public static void xmlToMap(String xml, Map m, String tag, String keyAttr, String valueAttr) throws SAXException,
+	/* public static void xmlToTable(String xml, DefaultTableModel model, String tag, String[] attribs) throws SAXException,
 	 * ParserConfigurationException { Document doc= parseXML( xml );
 	 * 
 	 * NodeList elements = doc.getElementsByTagName(tag);
 	 * 
 	 * for (int i = 0; i < elements.getLength(); i++) { Element element = (Element)elements.item(i);
 	 * 
-	 * String k = element.getAttribute(keyAttr); String v = valueAttr.equals("*") ? element.getTextContent() :
-	 * element.getAttribute(valueAttr);
+	 * String[] v= new String[attribs.length]; for (int j = 0; j < attribs.length; j++) { v[j]= element.getAttribute( attribs[j] ); }
+	 * 
+	 * model.addRow(v); } }
+	 * 
+	 * public static void xmlToMap(String xml, Map m, String tag, String keyAttr, String valueAttr) throws SAXException, ParserConfigurationException
+	 * { Document doc= parseXML( xml );
+	 * 
+	 * NodeList elements = doc.getElementsByTagName(tag);
+	 * 
+	 * for (int i = 0; i < elements.getLength(); i++) { Element element = (Element)elements.item(i);
+	 * 
+	 * String k = element.getAttribute(keyAttr); String v = valueAttr.equals("*") ? element.getTextContent() : element.getAttribute(valueAttr);
 	 * 
 	 * m.put(k, v); } } */
 
@@ -587,8 +587,8 @@ public class XmlTools {
 	 * 
 	 * @throws Exception
 	 *             In case the xinclude processing raised an error.
-	 * @deprecated Use the {@link #xinclude(Node, Function)} as this has better support for xpointer includes. Use null
-	 *             for the Function parameter to maintain the same functionality.
+	 * @deprecated Use the {@link #xinclude(Node, Function)} as this has better support for xpointer includes. Use null for the Function parameter to
+	 *             maintain the same functionality.
 	 */
 	@Deprecated
 	public static void xinclude(Node n) throws Exception { // FIXME: specific exceptions!
@@ -854,9 +854,9 @@ public class XmlTools {
 		if (writeSave) {
 			String guid = RandomTools.getRandom32CharactersHexString(true);
 			saveFile = new File(f.getAbsoluteFile() + ".tmp." + guid);
-			out = new FileOutputStream(saveFile);
+			out = new BufferedOutputStream(new FileOutputStream(saveFile), 16232);
 		} else {
-			out = new FileOutputStream(f);
+			out = new BufferedOutputStream(new FileOutputStream(f), 16232);
 		}
 
 		try {
@@ -879,7 +879,7 @@ public class XmlTools {
 
 	public static void writeXml(Node node, OutputStream out, String encoding) throws TransformerException {
 		try {
-			Writer wr = new OutputStreamWriter(out, encoding);
+			Writer wr = new UnsynchronizedBufferedWriter(new OutputStreamWriter(out, encoding));
 			writeXml(node, wr, encoding);
 			wr.close();
 		} catch (IOException e) {
@@ -888,8 +888,7 @@ public class XmlTools {
 	}
 
 	/**
-	 * Same as {@link #writeXml(Node, OutputStream, String)} with the exception that it differentiates between
-	 * transformer errors and I/O errors.
+	 * Same as {@link #writeXml(Node, OutputStream, String)} with the exception that it differentiates between transformer errors and I/O errors.
 	 * 
 	 * @param node
 	 *            The node to be written
@@ -943,8 +942,8 @@ public class XmlTools {
 	}
 
 	public static String escape(String s) {
-		/* //NOTE: quite slow s = s.replaceAll("&","&amp;"); s = s.replaceAll("<","&lt;"); s = s.replaceAll(">","&gt;");
-		 * s = s.replaceAll("\"","&quot;"); s = s.replaceAll("'","&apos;"); return s; */
+		/* //NOTE: quite slow s = s.replaceAll("&","&amp;"); s = s.replaceAll("<","&lt;"); s = s.replaceAll(">","&gt;"); s =
+		 * s.replaceAll("\"","&quot;"); s = s.replaceAll("'","&apos;"); return s; */
 
 		int c = s.length();
 		if (c == 0)
